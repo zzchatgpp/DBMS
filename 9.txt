@@ -1,0 +1,57 @@
+DELIMITER $$
+
+CREATE PROCEDURE ReturnBook(
+IN p_roll_no INT,
+IN p_book_name VARCHAR(255)
+)
+BEGIN
+DECLARE v_date_of_issue DATE;
+DECLARE v_status CHAR(1);
+DECLARE v_days INT;
+DECLARE v_fine_amt INT DEFAULT 0;
+DECLARE v_bid INT;
+DECLARE v_noc INT;
+DECLARE exit handler FOR SQLEXCEPTION
+BEGIN
+ROLLBACK;
+SELECT 'Error occurred during the process.' AS Message;
+END;
+START TRANSACTION;
+SELECT DateofIssue, Status INTO v_date_of_issue, v_status
+FROM Borrower
+WHERE Rollin = p_roll_no AND NameofBook = p_book_name
+LIMIT 1;
+IF v_status = 'R' THEN
+SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Book already returned.';
+END IF;
+SET v_days = DATEDIFF(CURDATE(), v_date_of_issue);
+IF v_days BETWEEN 15 AND 30 THEN
+SET v_fine_amt = v_days * 5;
+ELSEIF v_days > 30 THEN
+SET v_fine_amt = (30 * 5) + ((v_days - 30) * 50);
+ELSE
+SET v_fine_amt = 0;
+END IF;
+UPDATE Borrower
+SET Status = 'R'
+WHERE Rollin = p_roll_no AND NameofBook = p_book_name;
+SELECT bid, noc INTO v_bid, v_noc
+FROM Library
+WHERE bname = p_book_name
+LIMIT 1;
+UPDATE Library
+SET noc = noc + 1
+WHERE bid = v_bid;
+INSERT INTO transaction (bid, bname, status)
+VALUES (v_bid, p_book_name, 'RETURN');
+IF v_fine_amt > 0 THEN
+INSERT INTO Fine (Roll_no, Date, Amt)
+VALUES (p_roll_no, CURDATE(), v_fine_amt);
+END IF;
+COMMIT;
+SELECT CONCAT('Book returned successfully. Fine amount: Rs ', v_fine_amt) AS Message;
+END $$
+
+DELIMITER ;
+
+CALL ReturnBook(101, 'The Great Gatsby');

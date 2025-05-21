@@ -1,0 +1,92 @@
+DROP TABLE IF EXISTS Student;
+
+DROP TABLE IF EXISTS Result;
+
+CREATE TABLE Student (
+rollno INT PRIMARY KEY,
+name VARCHAR(50),
+Marks1 INT,
+Marks2 INT,
+Marks3 INT,
+Marks4 INT,
+Marks5 INT
+);
+
+CREATE TABLE Result (
+rollno INT PRIMARY KEY,
+total_marks INT,
+class VARCHAR(20)
+);
+
+INSERT INTO Student VALUES (1, 'Alice', 95, 98, 97, 100, 96);
+INSERT INTO Student VALUES (2, 'Bob', 85, 80, 79, 88, 82);
+INSERT INTO Student VALUES (3, 'Charlie', 65, 70, 75, 60, 68);
+INSERT INTO Student VALUES (4, 'David', 101, 90, 85, 88, 92);
+INSERT INTO Student VALUES (5, 'Eve', 80, -5, 90, 85, 87);
+
+DELIMITER //
+
+CREATE FUNCTION validate_total( m1 INT, m2 INT, m3 INT, m4 INT, m5 INT ) RETURNS INT
+BEGIN
+IF m1 < 0 OR m1 > 100 OR m2 < 0 OR m2 > 100 OR m3 < 0 OR m3 > 100 OR m4 < 0 OR m4 > 100 OR m5 < 0
+OR m5 > 100 THEN
+SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Marks must be between 0 and 100';
+END IF;
+RETURN m1 + m2 + m3 + m4 + m5;
+END;
+//
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE PROCEDURE classify_students()
+BEGIN
+DECLARE done INT DEFAULT FALSE;
+DECLARE r INT;
+DECLARE n VARCHAR(50);
+DECLARE m1, m2, m3, m4, m5 INT;
+DECLARE total INT;
+DECLARE class_result VARCHAR(20);
+DECLARE cur CURSOR FOR SELECT rollno, name, Marks1, Marks2, Marks3, Marks4, Marks5 FROM Student;
+DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+DECLARE CONTINUE HANDLER FOR SQLEXCEPTION BEGIN
+SET done = TRUE;
+END;
+DELETE FROM Result;
+OPEN cur;
+read_loop: LOOP
+FETCH cur INTO r, n, m1, m2, m3, m4, m5;
+IF done THEN
+LEAVE read_loop;
+END IF;
+BEGIN
+SET total = validate_total(m1, m2, m3, m4, m5);
+EXCEPTION
+WHEN SQLEXCEPTION THEN
+ITERATE read_loop;
+END;
+IF total BETWEEN 990 AND 1499 THEN
+SET class_result = 'Distinction';
+ELSEIF total BETWEEN 900 AND 989 THEN
+SET class_result = 'First Class';
+ELSEIF total BETWEEN 825 AND 899 THEN
+SET class_result = 'Higher Second';
+ELSEIF total BETWEEN 750 AND 824 THEN
+SET class_result = 'Second';
+ELSEIF total < 750 THEN
+SET class_result = 'Pass';
+ELSE
+SET class_result = 'Fail';
+END IF;
+INSERT INTO Result(rollno, total_marks, class) VALUES (r, total, class_result);
+END LOOP;
+CLOSE cur;
+END;
+//
+
+DELIMITER ;
+
+CALL classify_students();
+
+SELECT * FROM Result;

@@ -1,0 +1,42 @@
+use companyDB
+
+db.Employee.insertMany([
+  { emp_id: 101, emp_name: "Alice", emp_dept: "HR", salary: 45000 },
+  { emp_id: 102, emp_name: "Bob", emp_dept: "IT", salary: 60000 },
+  { emp_id: 103, emp_name: "Charlie", emp_dept: "IT", salary: 70000 },
+  { emp_id: 104, emp_name: "David", emp_dept: "HR", salary: 48000 },
+  { emp_id: 105, emp_name: "Eva", emp_dept: "Finance", salary: 52000 },
+  { emp_id: 106, emp_name: "Frank", emp_dept: "Finance", salary: 57000 }
+])
+
+db.Employee.aggregate([
+  { $group: { _id: null, total_salary: { $sum: "$salary" } } }
+])
+
+db.Employee.aggregate([
+  { $group: { _id: "$emp_dept", avg_salary: { $avg: "$salary" } } }
+])
+
+db.Employee.aggregate([
+  { $group: {
+      _id: "$emp_dept",
+      min_salary: { $min: "$salary" },
+      max_salary: { $max: "$salary" }
+  } }
+])
+
+db.Employee.aggregate([
+  { $group: { _id: "$emp_dept", count: { $sum: 1 } } }
+])
+
+db.Employee.aggregate([
+  { $sort: { salary: -1 } }
+])
+
+db.Employee.createIndex({ emp_id: 1 })
+
+db.Employee.createIndex({ emp_dept: 1, salary: -1 })
+
+db.Employee.getIndexes()
+
+db.Employee.find({ emp_dept: "IT" }).explain("executionStats")

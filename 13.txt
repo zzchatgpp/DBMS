@@ -1,0 +1,115 @@
+DROP TABLE IF EXISTS DEPENDENT, WORKS_ON, PROJECT, DEPT_LOCATIONS, DEPARTMENT, EMPLOYEE;
+
+CREATE TABLE EMPLOYEE (
+Fname VARCHAR(20),
+Minit CHAR(1),
+Lname VARCHAR(20),
+Ssn CHAR(9) PRIMARY KEY,
+Bdate DATE,
+Address VARCHAR(100),
+Sex CHAR(1),
+Salary DECIMAL(10,2),
+Dno INT
+);
+
+CREATE TABLE DEPARTMENT (
+Dname VARCHAR(50),
+Dno INT PRIMARY KEY,
+Mgr_ssn CHAR(9),
+Mgr_start_date DATE,
+FOREIGN KEY (Mgr_ssn) REFERENCES EMPLOYEE(Ssn)
+);
+
+CREATE TABLE DEPT_LOCATIONS (
+Dnumber INT,
+Dlocation VARCHAR(50),
+FOREIGN KEY (Dnumber) REFERENCES DEPARTMENT(Dno)
+);
+
+CREATE TABLE PROJECT (
+Pname VARCHAR(50),
+Pnumber INT PRIMARY KEY,
+Plocation VARCHAR(50),
+Dno INT,
+FOREIGN KEY (Dno) REFERENCES DEPARTMENT(Dno)
+);
+
+CREATE TABLE WORKS_ON (
+Essn CHAR(9),
+Pno INT,
+Hours DECIMAL(5,2),
+FOREIGN KEY (Essn) REFERENCES EMPLOYEE(Ssn),
+FOREIGN KEY (Pno) REFERENCES PROJECT(Pnumber)
+);
+
+CREATE TABLE DEPENDENT (
+Essn CHAR(9),
+Dependent_name VARCHAR(30),
+Sex CHAR(1),
+Bdate DATE,
+Relationship VARCHAR(20),
+FOREIGN KEY (Essn) REFERENCES EMPLOYEE(Ssn)
+);
+
+INSERT INTO EMPLOYEE VALUES
+('John', 'B', 'Smith', '123456789', '1990-01-09', 'Houston, Texas', 'M', 50000, 1),
+('Alice', 'J', 'Brown', '987654321', '1985-03-17', 'Dallas, Texas', 'F', 75000, 2),
+('Robert', 'K', 'Taylor', '456789123', '1979-07-23', 'Stafford, Texas', 'M', 65000, 1);
+
+INSERT INTO DEPARTMENT VALUES
+('Research', 1, '123456789', '2020-01-01'),
+('Administration', 2, '987654321', '2019-06-15');
+
+INSERT INTO DEPT_LOCATIONS VALUES
+(1, 'Stafford'),
+(2, 'Houston');
+
+INSERT INTO PROJECT VALUES
+('ProductX', 101, 'Stafford', 1),
+('ProductY', 102, 'Dallas', 2),
+('ProductZ', 103, 'Stafford', 1);
+
+INSERT INTO WORKS_ON VALUES
+('123456789', 101, 10.0),
+('456789123', 101, 12.5),
+('987654321', 102, 8.0);
+
+INSERT INTO DEPENDENT VALUES
+('123456789', 'Grace', 'F', '2010-08-12', 'Daughter'),
+('456789123', 'Kyle', 'M', '2005-05-23', 'Son');
+
+SELECT
+P.Pnumber,
+D.Dno,
+E.Lname AS ManagerLastName,
+E.Address,
+E.Bdate
+FROM
+PROJECT P
+JOIN DEPARTMENT D ON P.Dno = D.Dno
+JOIN EMPLOYEE E ON D.Mgr_ssn = E.Ssn
+WHERE
+P.Plocation = 'Stafford';
+
+SELECT DISTINCT P.Pnumber
+FROM PROJECT P
+LEFT JOIN DEPARTMENT D ON P.Dno = D.Dno
+LEFT JOIN EMPLOYEE MGR ON D.Mgr_ssn = MGR.Ssn
+LEFT JOIN WORKS_ON W ON P.Pnumber = W.Pno
+LEFT JOIN EMPLOYEE EMP ON W.Essn = EMP.Ssn
+WHERE
+MGR.Lname = 'Smith' OR EMP.Lname = 'Smith';
+
+SELECT *
+FROM EMPLOYEE
+WHERE Address LIKE '%Houston, Texas%';
+
+SELECT
+E.Fname,
+E.Lname,
+E.Salary AS OldSalary,
+(E.Salary * 1.10) AS NewSalary
+FROM EMPLOYEE E
+JOIN WORKS_ON W ON E.Ssn = W.Essn
+JOIN PROJECT P ON W.Pno = P.Pnumber
+WHERE P.Pname = 'ProductX';

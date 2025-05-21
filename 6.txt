@@ -1,0 +1,78 @@
+DROP TABLE IF EXISTS Categories;
+
+DROP TABLE IF EXISTS CitiesIndia;
+
+CREATE TABLE CitiesIndia (
+pincode INT PRIMARY KEY,
+nameofcity VARCHAR(50),
+earliername VARCHAR(50),
+area FLOAT,
+population INT,
+avgrainfall FLOAT
+);
+
+CREATE TABLE Categories (
+Type VARCHAR(20),
+pincode INT,
+FOREIGN KEY (pincode) REFERENCES CitiesIndia(pincode)
+);
+
+INSERT INTO CitiesIndia VALUES (411001, 'Pune', 'Poona', 150, 22000, 700);
+INSERT INTO CitiesIndia VALUES (400001, 'Mumbai', 'Bombay', 603, 25000, 845);
+INSERT INTO CitiesIndia VALUES (110001, 'Delhi', 'Indraprastha', 1484, 12000, 800);
+INSERT INTO CitiesIndia VALUES (800001, 'Patna', 'Pataliputra', 320, 18000, 1005);
+INSERT INTO CitiesIndia VALUES (500001, 'Hyderabad', 'Bhagyanagar', 650, 9, 950);
+
+DELIMITER //
+
+CREATE FUNCTION get_density(pop INT, area FLOAT)
+RETURNS FLOAT
+DETERMINISTIC
+BEGIN
+IF pop < 10 OR pop > 25718 THEN
+SIGNAL SQLSTATE '45000'
+SET MESSAGE_TEXT = 'Population must be between 10 and 25718';
+END IF;
+RETURN pop / area;
+END;
+//
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE PROCEDURE categorize_density()
+BEGIN
+DECLARE done INT DEFAULT FALSE;
+DECLARE p_pin INT;
+DECLARE p_pop INT;
+DECLARE p_area FLOAT;
+DECLARE density FLOAT;
+DECLARE cur CURSOR FOR SELECT pincode, population, area FROM CitiesIndia;
+DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+OPEN cur;
+read_loop: LOOP
+FETCH cur INTO p_pin, p_pop, p_area;
+IF done THEN
+LEAVE read_loop;
+END IF;
+BEGIN
+SET density = get_density(p_pop, p_area);
+IF density > 3000 THEN
+INSERT INTO Categories VALUES ('High Density', p_pin);
+ELSEIF density >= 1000 AND density <= 3000 THEN
+INSERT INTO Categories VALUES ('Moderate', p_pin);
+ELSE
+INSERT INTO Categories VALUES ('Low Density', p_pin);
+END IF;
+END;
+END LOOP;
+CLOSE cur;
+END;
+//
+
+DELIMITER ;
+
+CALL categorize_density();
+
+SELECT * FROM Categories;

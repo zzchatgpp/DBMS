@@ -1,0 +1,25 @@
+CREATE TABLE Borrower (
+Rollin INT NOT NULL,
+Name VARCHAR(100) NOT NULL,
+DateofIssue DATE NOT NULL,
+NameofBook VARCHAR(255) NOT NULL,
+Status CHAR(1) CHECK (Status IN ('I', 'R')),
+PRIMARY KEY (Rollin, NameofBook)
+);
+
+CREATE VIEW IssuedBooks AS
+SELECT Rollin, Name, NameofBook, DateofIssue
+FROM Borrower
+WHERE Status = 'I';
+
+CREATE VIEW Borrower_Synonym AS
+SELECT * FROM Borrower;
+
+CREATE INDEX idx_Rollin ON Borrower (Rollin);
+
+CREATE INDEX idx_BookName ON Borrower (NameofBook);
+
+CREATE TABLE BorrowerSeq (
+id INT NOT NULL AUTO_INCREMENT,
+PRIMARY KEY (id)
+);

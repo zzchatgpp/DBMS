@@ -1,0 +1,63 @@
+DROP TABLE IF EXISTS Library_Audit;
+DROP TABLE IF EXISTS Library;
+
+CREATE TABLE Library (
+bid INT PRIMARY KEY,
+bname VARCHAR(100),
+doi DATE,
+status VARCHAR(20)
+);
+
+INSERT INTO Library (bid, bname, doi, status) VALUES
+(1, 'The Great Gatsby', '2025-01-10', 'RETURN'),
+(2, '1984', '2025-02-20', 'ISSUE'),
+(3, 'To Kill a Mockingbird', '2025-03-05', 'RETURN');
+
+CREATE TABLE Library_Audit (
+bid INT,
+bname VARCHAR(100),
+noc INT,
+timestampofquery TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+fine INT DEFAULT 0
+);
+
+DELIMITER $$
+
+CREATE TRIGGER trg_after_insert_update_status 
+AFTER INSERT ON Library 
+FOR EACH ROW 
+BEGIN 
+    DECLARE copies INT DEFAULT 0; 
+    IF NEW.status = 'ISSUE' THEN 
+        SET copies = -1; 
+    ELSEIF NEW.status = 'RETURN' THEN 
+        SET copies = 1; 
+    ELSE 
+        SET copies = 0; 
+    END IF; 
+    INSERT INTO Library_Audit (bid, bname, noc) 
+    VALUES (NEW.bid, NEW.bname, copies); 
+END$$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER trg_after_update_fine 
+AFTER UPDATE ON Library 
+FOR EACH ROW 
+BEGIN 
+    DECLARE days_diff INT; 
+    DECLARE fine_amt INT; 
+    SET days_diff = DATEDIFF(CURRENT_DATE, NEW.doi); 
+    IF days_diff > 20 THEN 
+        UPDATE Library 
+        SET status = 'FINE' 
+        WHERE bid = NEW.bid; 
+        SET fine_amt = days_diff * 10; 
+        INSERT INTO Library_Audit (bid, bname, noc, fine) 
+        VALUES (NEW.bid, NEW.bname, 0, fine_amt); 
+    END IF; 
+END$$
+
+DELIMITER ;

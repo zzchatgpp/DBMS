@@ -1,0 +1,50 @@
+CREATE TABLE Borrower (
+Rollin INT,
+Name VARCHAR(50),
+DateofIssue DATE,
+NameofBook VARCHAR(100),
+Status CHAR(1),
+PRIMARY KEY (Rollin, NameofBook)
+);
+
+CREATE TABLE Fine (
+Roll_no INT,
+Date DATE,
+Amt DECIMAL(10,2)
+);
+
+DELIMITER $$
+
+CREATE PROCEDURE CalculateFine(IN p_roll_no INT, IN p_book_name VARCHAR(100))
+BEGIN
+DECLARE v_date_of_issue DATE;
+DECLARE v_status CHAR(1);
+DECLARE v_days INT;
+DECLARE v_fine_amt INT DEFAULT 0;
+SELECT DateofIssue, Status INTO v_date_of_issue, v_status
+FROM Borrower
+WHERE Rollin = p_roll_no AND NameofBook = p_book_name;
+SET v_days = DATEDIFF(CURDATE(), v_date_of_issue);
+IF v_days < 15 THEN
+SET v_fine_amt = 0;
+ELSEIF v_days BETWEEN 15 AND 30 THEN
+SET v_fine_amt = v_days * 5;
+ELSE
+SET v_fine_amt = v_days * 50;
+END IF;
+IF v_status = 'I' THEN
+UPDATE Borrower SET Status = 'R' WHERE Rollin = p_roll_no AND NameofBook = p_book_name;
+END IF;
+IF v_fine_amt > 0 THEN
+INSERT INTO Fine(Roll_no, Date, Amt) VALUES (p_roll_no, CURDATE(), v_fine_amt);
+END IF;
+SELECT CONCAT('Fine amount: ', v_fine_amt) AS FineMessage;
+END$$
+
+DELIMITER ;
+
+INSERT INTO Borrower VALUES
+(123, 'John Doe', '2024-01-10', 'Data Structures', 'I'),
+(124, 'Jane Smith', '2024-02-01', 'Algorithms', 'I');
+
+CALL CalculateFine(123, 'Data Structures');

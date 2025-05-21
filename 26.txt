@@ -1,0 +1,33 @@
+CREATE TABLE Employee_salary (
+emp_no INT PRIMARY KEY,
+emp_name VARCHAR(50),
+basic DECIMAL(10,2),
+HRA DECIMAL(10,2),
+DA DECIMAL(10,2),
+Total_deduction DECIMAL(10,2),
+net_salary DECIMAL(10,2),
+gross_salary DECIMAL(10,2)
+);
+
+DELIMITER $$
+
+CREATE PROCEDURE CalculateTax(IN empNo INT)
+BEGIN
+DECLARE v_gross_salary DECIMAL(10,2);
+DECLARE v_emp_name VARCHAR(50);
+DECLARE v_tax DECIMAL(10,2);
+SELECT emp_name, (basic + HRA + DA) INTO v_emp_name, v_gross_salary
+FROM Employee_salary
+WHERE emp_no = empNo;
+SET v_tax = v_gross_salary * 0.10;
+SELECT CONCAT('Employee: ', v_emp_name, ', Tax: ', v_tax) AS Result;
+END$$
+
+DELIMITER ;
+
+INSERT INTO Employee_salary VALUES
+(101, 'Alice', 30000.00, 5000.00, 2000.00, 1000.00, 35000.00, 40000.00),
+(102, 'Bob', 35000.00, 6000.00, 2500.00, 1200.00, 41000.00, 47000.00),
+(103, 'Charlie', 28000.00, 4500.00, 1800.00, 800.00, 34000.00, 38000.00);
+
+CALL CalculateTax(101);

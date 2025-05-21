@@ -1,0 +1,61 @@
+CREATE TABLE IF NOT EXISTS branch (
+branch_name VARCHAR(50) PRIMARY KEY,
+branch_city VARCHAR(50) NOT NULL,
+assets DECIMAL(15,2) NOT NULL CHECK (assets >= 0)
+);
+
+CREATE TABLE IF NOT EXISTS Account (
+Acc_no INT PRIMARY KEY,
+branch_name VARCHAR(50),
+balance DECIMAL(15,2) NOT NULL CHECK (balance >= 0),
+FOREIGN KEY (branch_name) REFERENCES branch(branch_name)
+);
+
+CREATE TABLE IF NOT EXISTS customer (
+cust_name VARCHAR(50) PRIMARY KEY,
+cust_street VARCHAR(100),
+cust_city VARCHAR(50)
+);
+
+CREATE TABLE IF NOT EXISTS Depositor (
+cust_name VARCHAR(50),
+acc_no INT,
+PRIMARY KEY (cust_name, acc_no),
+FOREIGN KEY (cust_name) REFERENCES customer(cust_name),
+FOREIGN KEY (acc_no) REFERENCES Account(Acc_no)
+);
+
+CREATE TABLE IF NOT EXISTS Loan (
+loan_no INT PRIMARY KEY,
+branch_name VARCHAR(50),
+amount DECIMAL(15,2) NOT NULL CHECK (amount >= 0),
+FOREIGN KEY (branch_name) REFERENCES branch(branch_name)
+);
+
+CREATE TABLE IF NOT EXISTS Borrower (
+cust_name VARCHAR(50),
+loan_no INT,
+PRIMARY KEY (cust_name, loan_no),
+FOREIGN KEY (cust_name) REFERENCES customer(cust_name),
+FOREIGN KEY (loan_no) REFERENCES Loan(loan_no)
+);
+
+INSERT IGNORE INTO branch VALUES
+('Nigdi', 'Pune', 8000000),
+('Akurdi', 'Pune', 10000000);
+
+INSERT IGNORE INTO Loan VALUES
+(301, 'Nigdi', 1400),
+(302, 'Akurdi', 1600),
+(303, 'Nigdi', 1200),
+(304, 'Akurdi', 1800);
+
+SELECT SUM(amount) AS total_loan_amount FROM Loan;
+
+DELETE FROM Loan WHERE amount BETWEEN 1300 AND 1500;
+
+DELETE FROM Borrower WHERE loan_no IN (SELECT loan_no FROM Loan WHERE branch_name = 'Nigdi');
+DELETE FROM Loan WHERE branch_name = 'Nigdi';
+DELETE FROM Depositor WHERE acc_no IN (SELECT Acc_no FROM Account WHERE branch_name = 'Nigdi');
+DELETE FROM Account WHERE branch_name = 'Nigdi';
+DELETE FROM branch WHERE branch_name = 'Nigdi';

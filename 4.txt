@@ -1,0 +1,47 @@
+DROP TABLE IF EXISTS Library_Audit;
+DROP TABLE IF EXISTS Library;
+
+CREATE TABLE Library (
+bid INT PRIMARY KEY,
+bname VARCHAR(100),
+doi DATE,
+status VARCHAR(20)
+);
+
+INSERT INTO Library (bid, bname, doi, status) VALUES
+(1, 'The Great Gatsby', '2025-01-10', 'AVAILABLE'),
+(2, '1984', '2025-02-20', 'ISSUED'),
+(3, 'To Kill a Mockingbird', '2025-03-05', 'AVAILABLE');
+
+CREATE TABLE Library_Audit (
+bid INT,
+bname VARCHAR(100),
+doi DATE,
+status VARCHAR(20),
+operation_type VARCHAR(10),
+action_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+DELIMITER $$
+
+CREATE TRIGGER trg_after_update_library 
+AFTER UPDATE ON Library 
+FOR EACH ROW 
+BEGIN 
+    INSERT INTO Library_Audit (bid, bname, doi, status, operation_type) 
+    VALUES (OLD.bid, OLD.bname, OLD.doi, OLD.status, 'UPDATE'); 
+END$$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER trg_after_delete_library 
+AFTER DELETE ON Library 
+FOR EACH ROW 
+BEGIN 
+    INSERT INTO Library_Audit (bid, bname, doi, status, operation_type) 
+    VALUES (OLD.bid, OLD.bname, OLD.doi, OLD.status, 'DELETE'); 
+END$$
+
+DELIMITER ;

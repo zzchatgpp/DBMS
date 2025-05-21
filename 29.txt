@@ -1,0 +1,33 @@
+CREATE TABLE Student (
+ROLL_NO INT PRIMARY KEY,
+COURSE VARCHAR(50),
+COURSE_COD VARCHAR(20),
+SEM INT,
+TOTAL_MARKS INT,
+PERCENTAGE DECIMAL(5,2)
+);
+
+DELIMITER $$
+
+CREATE PROCEDURE CountStudentsByRange(IN p_course VARCHAR(50))
+BEGIN
+SELECT 
+  SUM(CASE WHEN percentage BETWEEN 70 AND 100 THEN 1 ELSE 0 END) AS Range_70_100,
+  SUM(CASE WHEN percentage BETWEEN 60 AND 69 THEN 1 ELSE 0 END) AS Range_60_69,
+  SUM(CASE WHEN percentage BETWEEN 50 AND 59 THEN 1 ELSE 0 END) AS Range_50_59,
+  SUM(CASE WHEN percentage < 50 THEN 1 ELSE 0 END) AS Below_49
+FROM Student
+WHERE course = p_course;
+END$$
+
+DELIMITER ;
+
+INSERT INTO Student VALUES
+(101, 'Computer Science', 'CS101', 1, 450, 75.00),
+(102, 'Computer Science', 'CS102', 2, 420, 70.00),
+(103, 'Electrical Engineering', 'EE101', 1, 380, 60.00),
+(104, 'Computer Science', 'CS103', 3, 390, 65.00),
+(105, 'Mechanical Engineering', 'ME101', 1, 300, 50.00),
+(106, 'Computer Science', 'CS104', 2, 250, 45.00);
+
+CALL CountStudentsByRange('Computer Science');

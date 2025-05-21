@@ -1,0 +1,72 @@
+DROP TABLE IF EXISTS WorksOn;
+DROP TABLE IF EXISTS Project;
+DROP TABLE IF EXISTS Employee;
+DROP TABLE IF EXISTS Department;
+
+CREATE TABLE Department (
+DeptID INT PRIMARY KEY,
+DeptName VARCHAR(100) NOT NULL UNIQUE,
+Location VARCHAR(100)
+);
+
+INSERT INTO Department (DeptID, DeptName, Location) VALUES
+(1, 'HR', 'New York'),
+(2, 'IT', 'San Francisco'),
+(3, 'Marketing', 'Chicago');
+
+CREATE TABLE Employee (
+EmpID INT AUTO_INCREMENT PRIMARY KEY,
+EmpName VARCHAR(100) NOT NULL,
+DeptID INT,
+Salary DECIMAL(10, 2),
+FOREIGN KEY (DeptID) REFERENCES Department(DeptID)
+);
+
+INSERT INTO Employee (EmpID, EmpName, DeptID, Salary) VALUES
+(1001, 'Alice Johnson', 1, 85000.00),
+(1002, 'Bob Smith', 2, 95000.00),
+(1003, 'Charlie Brown', 3, 75000.00);
+
+ALTER TABLE Employee AUTO_INCREMENT = 1001;
+
+CREATE TABLE Project (
+ProjID INT PRIMARY KEY,
+ProjName VARCHAR(100) NOT NULL,
+DeptID INT,
+Budget DECIMAL(12, 2),
+FOREIGN KEY (DeptID) REFERENCES Department(DeptID)
+);
+
+INSERT INTO Project (ProjID, ProjName, DeptID, Budget) VALUES
+(1, 'Project A', 1, 100000.00),
+(2, 'Project B', 2, 200000.00),
+(3, 'Project C', 3, 150000.00);
+
+CREATE TABLE WorksOn (
+EmpID INT,
+ProjID INT,
+HoursWorked DECIMAL(5, 2),
+PRIMARY KEY (EmpID, ProjID),
+FOREIGN KEY (EmpID) REFERENCES Employee(EmpID),
+FOREIGN KEY (ProjID) REFERENCES Project(ProjID)
+);
+
+INSERT INTO WorksOn (EmpID, ProjID, HoursWorked) VALUES
+(1001, 1, 25.50),
+(1002, 2, 30.00),
+(1003, 3, 18.50);
+
+CREATE VIEW HighBudgetEmployees AS
+SELECT e.EmpID, e.EmpName, d.DeptName, e.Salary
+FROM Employee e
+JOIN Department d ON e.DeptID = d.DeptID
+WHERE e.Salary > 80000;
+
+CREATE VIEW ActiveAssignments AS
+SELECT w.EmpID, e.EmpName, w.ProjID, p.ProjName, w.HoursWorked
+FROM WorksOn w
+JOIN Employee e ON w.EmpID = e.EmpID
+JOIN Project p ON w.ProjID = p.ProjID
+WHERE w.HoursWorked > 20;
+
+CREATE INDEX EmployeeId ON Employee (DeptID ASC, EmpID ASC);

@@ -1,0 +1,87 @@
+DROP TABLE IF EXISTS Loan;
+
+DROP TABLE IF EXISTS Book;
+
+DROP TABLE IF EXISTS Member;
+
+DROP TABLE IF EXISTS Author;
+
+DROP TABLE IF EXISTS Publisher;
+
+CREATE TABLE Author (
+Authorid INT PRIMARY KEY AUTO_INCREMENT,
+AuthorName VARCHAR(100) NOT NULL,
+Bio TEXT
+);
+
+CREATE TABLE Publisher (
+Publisherid INT PRIMARY KEY AUTO_INCREMENT,
+PublisherName VARCHAR(100) NOT NULL,
+Address VARCHAR(200)
+);
+
+CREATE TABLE Book (
+Bookid INT PRIMARY KEY AUTO_INCREMENT,
+Title VARCHAR(150) NOT NULL,
+Authorid INT,
+Publisherid INT,
+Year YEAR,
+FOREIGN KEY (Authorid) REFERENCES Author(Authorid),
+FOREIGN KEY (Publisherid) REFERENCES Publisher(Publisherid)
+);
+
+CREATE TABLE Member (
+Memberid INT PRIMARY KEY AUTO_INCREMENT,
+Name VARCHAR(100) NOT NULL,
+Address VARCHAR(200),
+Phone VARCHAR(15)
+);
+
+CREATE TABLE Loan (
+Loanid INT PRIMARY KEY AUTO_INCREMENT,
+Bookid INT,
+Memberid INT,
+LoanDate DATE,
+ReturnDate DATE,
+FOREIGN KEY (Bookid) REFERENCES Book(Bookid),
+FOREIGN KEY (Memberid) REFERENCES Member(Memberid)
+);
+
+INSERT INTO Author (AuthorName, Bio) VALUES
+('J.K. Rowling', 'British author, best known for the Harry Potter series'),
+('George Orwell', 'English novelist, essayist, journalist, and critic'),
+('J.R.R. Tolkien', 'English writer, best known for The Lord of the Rings');
+
+INSERT INTO Publisher (PublisherName, Address) VALUES
+('Bloomsbury', '50 Bedford Square, London, UK'),
+('Secker & Warburg', '20 Vauxhall Bridge Rd, London, UK'),
+('HarperCollins', '195 Broadway, New York, NY');
+
+INSERT INTO Book (Title, Authorid, Publisherid, Year) VALUES
+('Harry Potter and the Philosopher\'s Stone', 1, 1, 1997),
+('1984', 2, 2, 1949),
+('The Lord of the Rings', 3, 3, 1954);
+
+INSERT INTO Member (Name, Address, Phone) VALUES
+('Alice Johnson', '123 Maple St, Springfield', '123-456-7890'),
+('Bob Smith', '456 Oak St, Springfield', '987-654-3210'),
+('Charlie Brown', '789 Pine St, Springfield', '555-123-4567');
+
+INSERT INTO Loan (Bookid, Memberid, LoanDate, ReturnDate) VALUES
+(1, 1, '2025-05-01', '2025-05-15'),
+(2, 2, '2025-05-02', '2025-05-16'),
+(3, 3, '2025-05-03', '2025-05-17');
+
+CREATE VIEW BookDetails AS
+SELECT b.Bookid, b.Title, a.AuthorName, p.PublisherName, b.Year
+FROM Book b
+JOIN Author a ON b.Authorid = a.Authorid
+JOIN Publisher p ON b.Publisherid = p.Publisherid;
+
+CREATE VIEW LoanDetails AS
+SELECT l.Loanid, m.Name AS MemberName, b.Title AS BookTitle, l.LoanDate, l.ReturnDate
+FROM Loan l
+JOIN Member m ON l.Memberid = m.Memberid
+JOIN Book b ON l.Bookid = b.Bookid;
+
+CREATE INDEX Lib_Index1 ON Author (AuthorName ASC);

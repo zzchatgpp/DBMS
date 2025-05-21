@@ -1,0 +1,29 @@
+use school;
+
+db.Students.drop();
+
+db.Students.insertMany([
+  { stud_id: 1, stud_name: "Rahul", stud_addr: "Pune", stud_marks: 85 },
+  { stud_id: 2, stud_name: "Sneha", stud_addr: "Mumbai", stud_marks: 78 },
+  { stud_id: 3, stud_name: "Amit", stud_addr: "Delhi", stud_marks: 92 },
+  { stud_id: 4, stud_name: "Neha", stud_addr: "Pune", stud_marks: 88 },
+  { stud_id: 5, stud_name: "Karan", stud_addr: "Mumbai", stud_marks: 80 }
+]);
+
+var mapFunction = function () {
+  emit(this.stud_addr, this.stud_marks);
+};
+
+var reduceFunction = function (key, values) {
+  return Array.sum(values);
+};
+
+db.Students.mapReduce(
+  mapFunction,
+  reduceFunction,
+  {
+    out: "total_marks_per_city"
+  }
+);
+
+db.total_marks_per_city.find().pretty();

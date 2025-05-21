@@ -1,0 +1,80 @@
+CREATE TABLE IF NOT EXISTS Branch (
+bname VARCHAR(50) PRIMARY KEY,
+city VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS Customers (
+cname VARCHAR(50) PRIMARY KEY,
+city VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS Deposit (
+actno INT PRIMARY KEY,
+cname VARCHAR(50),
+bname VARCHAR(50),
+amount DECIMAL(10,2),
+adate DATE,
+FOREIGN KEY (cname) REFERENCES Customers(cname),
+FOREIGN KEY (bname) REFERENCES Branch(bname)
+);
+
+CREATE TABLE IF NOT EXISTS Borrow (
+loanno INT PRIMARY KEY,
+cname VARCHAR(50),
+bname VARCHAR(50),
+amount DECIMAL(10,2),
+FOREIGN KEY (cname) REFERENCES Customers(cname),
+FOREIGN KEY (bname) REFERENCES Branch(bname)
+);
+
+INSERT IGNORE INTO Branch VALUES
+('B1', 'Pune'),
+('B2', 'Mumbai'),
+('B3', 'Nagpur');
+
+INSERT IGNORE INTO Customers VALUES
+('Sunil', 'Pune'),
+('Pramod', 'Nagpur'),
+('ABC', 'Mumbai'),
+('Ravi', 'Nagpur'),
+('Kiran', 'Pune');
+
+INSERT IGNORE INTO Deposit VALUES
+(101, 'ABC', 'B2', 2000.00, '2024-01-01'),
+(102, 'Pramod', 'B3', 3000.00, '2024-02-01'),
+(103, 'Kiran', 'B1', 1500.00, '2024-03-01'),
+(104, 'Ravi', 'B3', 1200.00, '2024-04-01');
+
+INSERT IGNORE INTO Borrow VALUES
+(201, 'Sunil', 'B1', 5000.00),
+(202, 'Pramod', 'B3', 7000.00),
+(203, 'Ravi', 'B3', 8000.00),
+(204, 'Kiran', 'B1', 6500.00);
+
+SELECT loanno, amount
+FROM Borrow
+WHERE bname = (
+    SELECT bname FROM Borrow WHERE cname = 'Sunil'
+);
+
+SELECT d.actno, d.cname, d.bname, d.amount AS deposit_amount, d.adate
+FROM Deposit d
+JOIN Customers c ON d.cname = c.cname
+WHERE c.city = (SELECT city FROM Customers WHERE cname = 'Pramod');
+
+SELECT b.loanno, b.cname, b.bname, b.amount AS loan_amount
+FROM Borrow b
+JOIN Customers c ON b.cname = c.cname
+WHERE c.city = (SELECT city FROM Customers WHERE cname = 'Pramod');
+
+SELECT DISTINCT b.cname
+FROM Borrow b
+JOIN Customers c ON b.cname = c.cname
+JOIN Deposit d ON b.cname = d.cname
+WHERE d.amount > 1000
+AND c.city = (SELECT city FROM Customers WHERE cname = 'Pramod');
+
+SELECT d.bname, c.city
+FROM Deposit d
+JOIN Customers c ON d.cname = c.cname
+WHERE d.cname = 'ABC';

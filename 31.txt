@@ -1,0 +1,35 @@
+db.Citydetails.insertMany([ 
+  { 
+    _id: 1, 
+    name: "Pune", 
+    area: 500, 
+    population: { total: 6000000, Adults: 4000000, seniorcitizens: 500000, sexratio: 950 }, 
+    geography: { avgtemp: 25, avgrainfall: 70, longitude: 73.8567, latitude: 18.5204 } 
+  }, 
+  { 
+    _id: 2, 
+    name: "Mumbai", 
+    area: 600, 
+    population: { total: 20000000, Adults: 13000000, seniorcitizens: 1500000, sexratio: 920 }, 
+    geography: { avgtemp: 27, avgrainfall: 80, longitude: 72.8777, latitude: 19.0760 } 
+  } 
+]);
+
+db.Citydetails.find({ name: "Pune" }, { "population.total": 1, _id: 0 });
+
+db.Citydetails.find({ "population.total": { $gt: 10000000 } });
+
+db.Citydetails.aggregate([ 
+  { $project: { 
+    name: 1, 
+    avg_population: { $avg: ["$population.Adults", "$population.seniorcitizens"] } 
+  }} 
+]);
+
+db.Citydetails.aggregate([ 
+  { $group: { 
+    _id: null, 
+    maxPop: { $max: "$population.total" }, 
+    minPop: { $min: "$population.total" } 
+  }} 
+]);

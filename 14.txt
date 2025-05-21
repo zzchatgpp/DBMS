@@ -1,0 +1,105 @@
+DROP TABLE IF EXISTS Borrower, Loan, Depositor, Account, Customer, Branch;
+
+CREATE TABLE Branch (
+branch_name VARCHAR(50) PRIMARY KEY,
+branch_city VARCHAR(50),
+assets DECIMAL(12,2)
+);
+
+CREATE TABLE Account (
+acc_no INT PRIMARY KEY,
+branch_name VARCHAR(50),
+balance DECIMAL(10,2),
+FOREIGN KEY (branch_name) REFERENCES Branch(branch_name)
+);
+
+CREATE TABLE Customer (
+cust_name VARCHAR(50) PRIMARY KEY,
+cust_street VARCHAR(100),
+cust_city VARCHAR(50)
+);
+
+CREATE TABLE Depositor (
+cust_name VARCHAR(50),
+acc_no INT,
+FOREIGN KEY (cust_name) REFERENCES Customer(cust_name),
+FOREIGN KEY (acc_no) REFERENCES Account(acc_no)
+);
+
+CREATE TABLE Loan (
+loan_no INT PRIMARY KEY,
+branch_name VARCHAR(50),
+amount DECIMAL(10,2),
+FOREIGN KEY (branch_name) REFERENCES Branch(branch_name)
+);
+
+CREATE TABLE Borrower (
+cust_name VARCHAR(50),
+loan_no INT,
+FOREIGN KEY (cust_name) REFERENCES Customer(cust_name),
+FOREIGN KEY (loan_no) REFERENCES Loan(loan_no)
+);
+
+INSERT INTO Branch VALUES
+('Pune Main', 'Pune', 5000000),
+('Mumbai Central', 'Mumbai', 8000000),
+('Delhi Hub', 'Delhi', 7000000);
+
+INSERT INTO Account VALUES
+(101, 'Pune Main', 10000),
+(102, 'Pune Main', 15000),
+(103, 'Mumbai Central', 12000),
+(104, 'Mumbai Central', 20000),
+(105, 'Delhi Hub', 8000);
+
+INSERT INTO Customer VALUES
+('Alice', 'MG Road', 'Pune'),
+('Bob', 'Linking Road', 'Mumbai'),
+('Charlie', 'Connaught Place', 'Delhi'),
+('David', 'FC Road', 'Pune'),
+('Eva', 'Colaba', 'Mumbai');
+
+INSERT INTO Depositor VALUES
+('Alice', 101),
+('Bob', 103),
+('Charlie', 105),
+('David', 102),
+('Eva', 104);
+
+INSERT INTO Loan VALUES
+(201, 'Pune Main', 50000),
+(202, 'Mumbai Central', 75000),
+(203, 'Delhi Hub', 40000);
+
+INSERT INTO Borrower VALUES
+('Alice', 201),
+('Charlie', 203),
+('Eva', 202);
+
+UPDATE Account SET balance = balance + 1000 WHERE acc_no = 101;
+
+DELETE FROM Depositor WHERE cust_name = 'David';
+
+SELECT branch_name, AVG(balance) AS avg_balance
+FROM Account
+GROUP BY branch_name;
+
+SELECT A.branch_name, COUNT(DISTINCT D.cust_name) AS num_depositors
+FROM Account A
+JOIN Depositor D ON A.acc_no = D.acc_no
+GROUP BY A.branch_name;
+
+SELECT branch_name
+FROM Account
+GROUP BY branch_name
+HAVING AVG(balance) > 12000;
+
+SELECT COUNT(*) AS total_customers FROM Customer;
+
+SELECT cust_name FROM Depositor
+INTERSECT
+SELECT cust_name FROM Borrower;
+
+SELECT cust_name FROM Depositor
+UNION
+SELECT cust_name FROM Borrower;

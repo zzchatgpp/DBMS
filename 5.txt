@@ -1,0 +1,32 @@
+use webanalytics;
+
+db.sites.drop(); 
+db.sites.insertMany([ 
+  { url: "example.com", dateofaccess: ISODate("2025-05-01T10:00:00Z") }, 
+  { url: "example.com", dateofaccess: ISODate("2025-05-03T12:00:00Z") }, 
+  { url: "openai.com", dateofaccess: ISODate("2025-05-02T11:00:00Z") }, 
+  { url: "openai.com", dateofaccess: ISODate("2025-04-20T09:00:00Z") }, 
+  { url: "example.com", dateofaccess: ISODate("2025-04-01T14:00:00Z") }, 
+  { url: "openai.com", dateofaccess: ISODate("2025-04-15T14:00:00Z") }, 
+  { url: "example.com", dateofaccess: ISODate("2025-03-10T16:00:00Z") } 
+]);
+
+var mapFunction = function() { 
+    var month = this.dateofaccess.getMonth() + 1;  
+    var year = this.dateofaccess.getFullYear(); 
+    emit({ url: this.url, month: month, year: year }, 1); 
+};
+
+var reduceFunction = function(key, values) { 
+    return Array.sum(values); 
+};
+
+db.sites.mapReduce( 
+    mapFunction, 
+    reduceFunction, 
+    { 
+        out: "site_monthly_access" 
+    } 
+);
+
+db.site_monthly_access.find().pretty();

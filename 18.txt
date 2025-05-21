@@ -1,0 +1,88 @@
+CREATE TABLE branch (
+branch_name VARCHAR(50) PRIMARY KEY,
+branch_city VARCHAR(50) NOT NULL,
+assets DECIMAL(15,2) NOT NULL CHECK (assets >= 0)
+);
+
+CREATE TABLE Account (
+Acc_no INT PRIMARY KEY,
+branch_name VARCHAR(50),
+balance DECIMAL(15,2) NOT NULL CHECK (balance >= 0),
+FOREIGN KEY (branch_name) REFERENCES branch(branch_name)
+);
+
+CREATE TABLE customer (
+cust_name VARCHAR(50) PRIMARY KEY,
+cust_street VARCHAR(100),
+cust_city VARCHAR(50)
+);
+
+CREATE TABLE Depositor (
+cust_name VARCHAR(50),
+acc_no INT,
+PRIMARY KEY (cust_name, acc_no),
+FOREIGN KEY (cust_name) REFERENCES customer(cust_name),
+FOREIGN KEY (acc_no) REFERENCES Account(Acc_no)
+);
+
+CREATE TABLE Loan (
+loan_no INT PRIMARY KEY,
+branch_name VARCHAR(50),
+amount DECIMAL(15,2) NOT NULL CHECK (amount >= 0),
+FOREIGN KEY (branch_name) REFERENCES branch(branch_name)
+);
+
+CREATE TABLE Borrower (
+cust_name VARCHAR(50),
+loan_no INT,
+PRIMARY KEY (cust_name, loan_no),
+FOREIGN KEY (cust_name) REFERENCES customer(cust_name),
+FOREIGN KEY (loan_no) REFERENCES Loan(loan_no)
+);
+
+INSERT INTO branch VALUES
+('Akurdi', 'Pune', 10000000),
+('Hinjewadi', 'Pune', 15000000);
+
+INSERT INTO Account VALUES
+(101, 'Akurdi', 15000),
+(102, 'Akurdi', 8000),
+(103, 'Hinjewadi', 20000);
+
+INSERT INTO customer VALUES
+('Alice', 'Street 1', 'Pune'),
+('Bob', 'Street 2', 'Mumbai'),
+('Charlie', 'Street 3', 'Pune'),
+('David', 'Street 4', 'Pune');
+
+INSERT INTO Depositor VALUES
+('Alice', 101),
+('Bob', 102),
+('Charlie', 103);
+
+INSERT INTO Loan VALUES
+(201, 'Akurdi', 25000),
+(202, 'Hinjewadi', 30000);
+
+INSERT INTO Borrower VALUES
+('Alice', 201),
+('David', 202);
+
+SELECT DISTINCT cust_name
+FROM (
+    SELECT cust_name FROM Depositor
+    UNION
+    SELECT cust_name FROM Borrower
+) AS all_customers;
+
+SELECT cust_name
+FROM Depositor
+WHERE cust_name IN (SELECT cust_name FROM Borrower);
+
+SELECT cust_name
+FROM Depositor
+WHERE cust_name NOT IN (SELECT cust_name FROM Borrower);
+
+SELECT AVG(balance) AS avg_balance
+FROM Account
+WHERE branch_name = 'Akurdi';

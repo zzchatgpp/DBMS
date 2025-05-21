@@ -1,0 +1,70 @@
+DROP TABLE IF EXISTS Employee;
+
+DROP TABLE IF EXISTS Department;
+
+CREATE TABLE Department (
+DeptID INT PRIMARY KEY,
+DeptName VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE Employee (
+EmpID INT PRIMARY KEY,
+Name VARCHAR(100) NOT NULL,
+DeptID INT,
+FOREIGN KEY (DeptID) REFERENCES Department(DeptID)
+);
+
+INSERT INTO Department VALUES
+(1, 'HR'),
+(2, 'Sales'),
+(3, 'IT'),
+(4, 'Marketing');
+
+INSERT INTO Employee VALUES
+(101, 'Alice', 1),
+(102, 'Bob', 2),
+(103, 'Charlie', 2),
+(104, 'David', NULL),
+(105, 'Eva', 3),
+(106, 'Frank', 5);
+
+SELECT e.Name AS Employee, d.DeptName
+FROM Employee e
+INNER JOIN Department d ON e.DeptID = d.DeptID;
+
+SELECT e.Name AS Employee, d.DeptName
+FROM Employee e
+LEFT JOIN Department d ON e.DeptID = d.DeptID;
+
+SELECT e.Name AS Employee, d.DeptName
+FROM Employee e
+RIGHT JOIN Department d ON e.DeptID = d.DeptID;
+
+SELECT e.Name AS Employee, d.DeptName
+FROM Employee e
+LEFT JOIN Department d ON e.DeptID = d.DeptID
+UNION
+SELECT e.Name AS Employee, d.DeptName
+FROM Employee e
+RIGHT JOIN Department d ON e.DeptID = d.DeptID;
+
+SELECT Name,
+    (SELECT DeptName FROM Department WHERE DeptID = Employee.DeptID) AS DeptName
+FROM Employee;
+
+SELECT Name, DeptID
+FROM Employee e1
+WHERE (SELECT COUNT(*) FROM Employee e2 WHERE e2.DeptID = e1.DeptID) > 1;
+
+SELECT Name FROM Employee
+WHERE DeptID IN (SELECT DeptID FROM Department WHERE DeptName IN ('Sales', 'Marketing'));
+
+SELECT Name FROM Employee e
+WHERE EXISTS (SELECT 1 FROM Department d WHERE d.DeptID = e.DeptID);
+
+CREATE OR REPLACE VIEW EmpDeptView AS
+SELECT e.EmpID, e.Name, d.DeptName
+FROM Employee e
+LEFT JOIN Department d ON e.DeptID = d.DeptID;
+
+SELECT * FROM EmpDeptView WHERE DeptName = 'Sales';

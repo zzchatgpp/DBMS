@@ -1,0 +1,53 @@
+use CityDB;
+
+db.Citydetails.insertMany([ 
+  { 
+    _id: 1, 
+    name: "Mumbai", 
+    area: "Mumbai Metro", 
+    population: { total: 20411000, Adults: 15000000, seniorcitizens: 2000000, sexratio: 940.00 }, 
+    geography: { avgtemp: 27.5, avgrainfall: 80.0, longitude: 72.8777, latitude: 19.0760 } 
+  }, 
+  { 
+    _id: 2, 
+    name: "Pune", 
+    area: "Pune Metro", 
+    population: { total: 6500000, Adults: 4800000, seniorcitizens: 700000, sexratio: 930.00 }, 
+    geography: { avgtemp: 24.0, avgrainfall: 65.5, longitude: 73.8567, latitude: 18.5204 } 
+  }, 
+  { 
+    _id: 3, 
+    name: "Nagpur", 
+    area: "Vidarbha", 
+    population: { total: 2400000, Adults: 1800000, seniorcitizens: 250000, sexratio: 920.00 }, 
+    geography: { avgtemp: 26.0, avgrainfall: 55.0, longitude: 79.0882, latitude: 21.1458 } 
+  }, 
+  { 
+    _id: 4, 
+    name: "Nashik", 
+    area: "North Maharashtra", 
+    population: { total: 1800000, Adults: 1400000, seniorcitizens: 180000, sexratio: 935.00 }, 
+    geography: { avgtemp: 25.0, avgrainfall: 62.0, longitude: 73.7898, latitude: 20.0110 } 
+  }
+]);
+
+print("Area wise total population sorted increasing:");
+db.Citydetails.aggregate([ 
+  { $group: { _id: "$area", totalPopulation: { $sum: "$population.total" } } }, 
+  { $sort: { totalPopulation: 1 } } 
+]).forEach(printjson);
+
+print("Cities with avg rainfall > 60:");
+db.Citydetails.find( 
+  { "geography.avgrainfall": { $gt: 60 } }, 
+  { name: 1, area: 1, _id: 0 } 
+).forEach(printjson);
+
+db.Citydetails.createIndex({ name: 1 });
+db.Citydetails.createIndex({ area: 1 });
+
+print("Max population in Mumbai:");
+db.Citydetails.aggregate([ 
+  { $match: { name: "Mumbai" } }, 
+  { $group: { _id: "$name", maxPopulation: { $max: "$population.total" } } } 
+]).forEach(printjson);

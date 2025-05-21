@@ -1,0 +1,56 @@
+CREATE TABLE IF NOT EXISTS Branch (
+bname VARCHAR(50) PRIMARY KEY,
+city VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS Customers (
+cname VARCHAR(50) PRIMARY KEY,
+city VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS Deposit (
+actno INT PRIMARY KEY,
+cname VARCHAR(50),
+bname VARCHAR(50),
+amount DECIMAL(10,2),
+adate DATE,
+FOREIGN KEY (cname) REFERENCES Customers(cname),
+FOREIGN KEY (bname) REFERENCES Branch(bname)
+);
+
+CREATE TABLE IF NOT EXISTS Borrow (
+loanno INT PRIMARY KEY,
+cname VARCHAR(50),
+bname VARCHAR(50),
+amount DECIMAL(10,2),
+FOREIGN KEY (cname) REFERENCES Customers(cname),
+FOREIGN KEY (bname) REFERENCES Branch(bname)
+);
+
+INSERT IGNORE INTO Branch VALUES
+('OBC', 'Mumbai'),
+('SBI', 'Pune');
+
+INSERT IGNORE INTO Customers VALUES
+('ABC', 'Pune'),
+('XYZ', 'Mumbai'),
+('DEF', 'Pune');
+
+INSERT IGNORE INTO Deposit VALUES
+(101, 'ABC', 'OBC', 5000.00, '2024-05-10'),
+(102, 'XYZ', 'SBI', 7500.00, '2024-04-15'),
+(103, 'DEF', 'OBC', 3000.00, '2024-03-20');
+
+INSERT IGNORE INTO Borrow VALUES
+(201, 'ABC', 'OBC', 20000.00),
+(202, 'XYZ', 'SBI', 15000.00);
+
+SELECT adate FROM Deposit WHERE cname = 'ABC';
+
+ALTER TABLE Deposit MODIFY amount DECIMAL(15,2);
+
+SELECT cname FROM Customers WHERE city = 'Pune';
+
+SELECT city FROM Branch WHERE bname = 'OBC';
+
+SELECT COUNT(*) AS total_customers FROM Customers;

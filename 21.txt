@@ -1,0 +1,69 @@
+CREATE TABLE IF NOT EXISTS Branch (
+bname VARCHAR(50) PRIMARY KEY,
+city VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS Customers (
+cname VARCHAR(50) PRIMARY KEY,
+city VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS Deposit (
+actno INT PRIMARY KEY,
+cname VARCHAR(50),
+bname VARCHAR(50),
+amount DECIMAL(10,2),
+adate DATE,
+FOREIGN KEY (cname) REFERENCES Customers(cname),
+FOREIGN KEY (bname) REFERENCES Branch(bname)
+);
+
+CREATE TABLE IF NOT EXISTS Borrow (
+loanno INT PRIMARY KEY,
+cname VARCHAR(50),
+bname VARCHAR(50),
+amount DECIMAL(10,2),
+FOREIGN KEY (cname) REFERENCES Customers(cname),
+FOREIGN KEY (bname) REFERENCES Branch(bname)
+);
+
+INSERT IGNORE INTO Branch VALUES
+('B1', 'Nagpur'),
+('B2', 'Mumbai'),
+('B3', 'Pune');
+
+INSERT IGNORE INTO Customers VALUES
+('Alice', 'Bombay'),
+('Bob', 'Nagpur'),
+('Charlie', 'Nagpur'),
+('David', 'Pune'),
+('Eve', 'Mumbai');
+
+INSERT IGNORE INTO Deposit VALUES
+(1, 'Alice', 'B1', 5000.00, '2024-01-15'),
+(2, 'Bob', 'B1', 7000.00, '2024-02-10'),
+(3, 'Charlie', 'B3', 6500.00, '2024-03-05'),
+(4, 'David', 'B2', 8000.00, '2024-01-20');
+
+INSERT IGNORE INTO Borrow VALUES
+(101, 'Bob', 'B1', 15000.00),
+(102, 'Charlie', 'B3', 12000.00),
+(103, 'Eve', 'B2', 10000.00);
+
+SELECT DISTINCT d.cname
+FROM Deposit d
+JOIN Branch b ON d.bname = b.bname
+JOIN Customers c ON d.cname = c.cname
+WHERE c.city = 'Bombay' AND b.city = 'Nagpur';
+
+SELECT DISTINCT d.cname
+FROM Deposit d
+JOIN Branch b ON d.bname = b.bname
+JOIN Customers c ON d.cname = c.cname
+WHERE c.city = b.city;
+
+SELECT DISTINCT c.cname
+FROM Customers c
+JOIN Deposit d ON c.cname = d.cname
+JOIN Borrow b ON c.cname = b.cname
+WHERE c.city = 'Nagpur';

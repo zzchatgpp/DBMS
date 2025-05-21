@@ -1,0 +1,69 @@
+CREATE TABLE Branch (
+bname VARCHAR(50) PRIMARY KEY,
+city VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE Customers (
+cname VARCHAR(50) PRIMARY KEY,
+city VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE Deposit (
+actno INT PRIMARY KEY,
+cname VARCHAR(50),
+bname VARCHAR(50),
+amount DECIMAL(10,2) CHECK (amount > 0),
+adate DATE,
+FOREIGN KEY (cname) REFERENCES Customers(cname),
+FOREIGN KEY (bname) REFERENCES Branch(bname)
+);
+
+CREATE TABLE Borrow (
+loanno INT PRIMARY KEY,
+cname VARCHAR(50),
+bname VARCHAR(50),
+amount DECIMAL(10,2) CHECK (amount > 0),
+FOREIGN KEY (cname) REFERENCES Customers(cname),
+FOREIGN KEY (bname) REFERENCES Branch(bname)
+);
+
+INSERT INTO Branch VALUES
+('KAROLBAGH', 'DELHI'),
+('SHIVAJINAGAR', 'PUNE'),
+('MGROAD', 'BANGALORE');
+
+INSERT INTO Customers VALUES
+('Anil', 'PUNE'),
+('Sunita', 'DELHI'),
+('Raj', 'PUNE'),
+('Priya', 'BANGALORE');
+
+INSERT INTO Deposit VALUES
+(101, 'Anil', 'SHIVAJINAGAR', 1500, '1999-02-15'),
+(102, 'Raj', 'SHIVAJINAGAR', 2000, '1998-03-01'),
+(103, 'Sunita', 'KAROLBAGH', 2500, '1997-11-20'),
+(104, 'Priya', 'MGROAD', 1800, '2000-06-25');
+
+INSERT INTO Borrow VALUES
+(201, 'Anil', 'KAROLBAGH', 3000),
+(202, 'Sunita', 'KAROLBAGH', 4500),
+(203, 'Raj', 'SHIVAJINAGAR', 2800);
+
+SELECT D.cname, D.amount
+FROM Deposit D
+JOIN Customers C1 ON D.cname = C1.cname
+JOIN Customers C2 ON C2.cname = 'Anil'
+WHERE C1.city = C2.city;
+
+SELECT SUM(amount) AS total_loan, MAX(amount) AS max_loan
+FROM Borrow
+WHERE bname = 'KAROLBAGH';
+
+SELECT SUM(amount) AS total_deposit
+FROM Deposit
+WHERE adate > '1998-01-01';
+
+SELECT MAX(D.amount) AS max_deposit
+FROM Deposit D
+JOIN Customers C ON D.cname = C.cname
+WHERE C.city = 'PUNE';

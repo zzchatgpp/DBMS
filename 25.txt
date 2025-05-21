@@ -1,0 +1,13 @@
+db.games.insertMany([
+  { name: "Apex Legends", gametype: "Shooter", score: 88, achievements: ["Speed Demon", "Sniper"] },
+  { name: "FIFA 23", gametype: "Sports", score: 92, achievements: ["Team Player", "Goal Master"] },
+  { name: "Valorant", gametype: "Shooter", score: 95, achievements: ["Game Master", "Speed Demon"] },
+  { name: "Minecraft", gametype: "Adventure", score: 85, achievements: ["Builder", "Game Master"] },
+  { name: "Asphalt 9", gametype: "Racing", score: 91, achievements: ["Speed Demon", "Drift King"] }
+]);
+
+db.games.find();
+
+db.games.find().sort({ score: -1 }).limit(3);
+
+db.games.find({ achievements: { $all: ["Game Master", "Speed Demon"] } });
