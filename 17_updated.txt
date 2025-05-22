@@ -1,0 +1,23 @@
+// Use your database
+use ecommerce;
+// Drop Orders collection if it exists
+db.Orders.drop();
+// Create & Insert Documents (Create)
+db.Orders.insertMany([
+{ cust_id: 101, amount: 2500, status: "Pending" },
+{ cust_id: 102, amount: 4800, status: "Shipped" },
+{ cust_id: 103, amount: 1500, status: "Delivered" }
+]);
+// Read: Find all orders
+db.Orders.find().pretty();
+// Read: Find specific order by customer ID
+db.Orders.find({ cust_id: 102 });
+// Update: Change status of an order
+db.Orders.updateOne(
+{ cust_id: 101 },
+{ $set: { status: "Shipped" } }
+);
+// Delete: Remove an order
+db.Orders.deleteOne({ cust_id: 103 });
+// Verify all documents after operations
+db.Orders.find().pretty();

@@ -1,0 +1,113 @@
+DROP TABLE IF EXISTS Result;
+Query OK, 0 rows affected (0.03 sec)
+
+mysql> DROP TABLE IF EXISTS Student;
+Query OK, 0 rows affected (0.02 sec)
+
+mysql>
+mysql> CREATE TABLE Student (
+    ->     rollno INT PRIMARY KEY,
+    ->     name VARCHAR(100),
+    ->     Marks1 INT,
+    ->     Marks2 INT,
+    ->     Marks3 INT,
+    ->     Marks4 INT,
+    ->     Marks5 INT
+    -> );
+Query OK, 0 rows affected (0.02 sec)
+
+mysql>
+mysql> CREATE TABLE Result (
+    ->     rollno INT PRIMARY KEY,
+    ->     total_marks INT,
+    ->     class VARCHAR(20),
+    ->     FOREIGN KEY (rollno) REFERENCES Student(rollno)
+    -> );
+Query OK, 0 rows affected (0.02 sec)
+
+mysql>
+mysql> -- Only insert valid data (marks between 0 and 100)
+mysql> INSERT INTO Student VALUES
+    -> (1, 'Alice', 95, 90, 85, 80, 75),
+    -> (2, 'Bob', 100, 100, 100, 100, 100),
+    -> (3, 'Charlie', 70, 65, 60, 75, 80),
+    -> (5, 'Eva', 50, 45, 40, 35, 30);
+Query OK, 4 rows affected (0.00 sec)
+Records: 4  Duplicates: 0  Warnings: 0
+
+mysql>
+mysql> -- Classification based on total out of 500
+mysql> DELIMITER //
+mysql> CREATE FUNCTION get_class(total INT)
+    -> RETURNS VARCHAR(20)
+    -> DETERMINISTIC
+    -> BEGIN
+    ->     DECLARE class VARCHAR(20);
+    ->
+    ->     IF total BETWEEN 450 AND 500 THEN
+    ->         SET class = 'Distinction';
+    ->     ELSEIF total BETWEEN 400 AND 449 THEN
+    ->         SET class = 'First Class';
+    ->     ELSEIF total BETWEEN 350 AND 399 THEN
+    ->         SET class = 'Second Class';
+    ->     ELSE
+    ->         SET class = 'Pass';
+    ->     END IF;
+    ->
+    ->     RETURN class;
+    -> END;
+    -> //
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> DELIMITER ;
+
+
+
+
+DELIMITER ;
+mysql> DELIMITER //
+mysql> CREATE PROCEDURE classify_students()
+    -> BEGIN
+    ->     DECLARE done INT DEFAULT 0;
+    ->     DECLARE r_rollno INT;
+    ->     DECLARE r_name VARCHAR(100);
+    ->     DECLARE m1, m2, m3, m4, m5 INT;
+    ->     DECLARE total_marks INT;
+    ->     DECLARE student_class VARCHAR(20);
+    ->
+    ->     DECLARE cur CURSOR FOR
+    ->         SELECT rollno, name, Marks1, Marks2, Marks3, Marks4, Marks5
+    ->         FROM Student;
+    ->
+    ->     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+    ->
+    ->     OPEN cur;
+    ->
+    ->     read_loop: LOOP
+    ->         FETCH cur INTO r_rollno, r_name, m1, m2, m3, m4, m5;
+    ->         IF done = 1 THEN
+    ->             LEAVE read_loop;
+    ->         END IF;
+    ->
+    ->         -- Check for invalid marks
+    ->         IF m1 < 0 OR m1 > 100 OR
+    ->            m2 < 0 OR m2 > 100 OR
+    ->            m3 < 0 OR m3 > 100 OR
+    ->            m4 < 0 OR m4 > 100 OR
+    ->            m5 < 0 OR m5 > 100 THEN
+    ->             SIGNAL SQLSTATE '45000' set message_text="invalid";
+    -> ELSE
+    ->             SET total_marks = m1 + m2 + m3 + m4 + m5;
+    ->             SET student_class = get_class(total_marks);
+    ->
+    ->             INSERT INTO Result (rollno, total_marks, class)
+    ->             VALUES (r_rollno, total_marks, student_class)
+    ->             ON DUPLICATE KEY UPDATE
+    ->                 total_marks = VALUES(total_marks),
+    ->                 class = VALUES(class);
+    ->         END IF;
+    ->     END LOOP;
+    ->
+    ->     CLOSE cur;
+    -> END;
+    -> //
